@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Október 23. — Messenger Előadás</title>
+  <style>
+    :root {
+      --bg-color: #1a1a1a;
+      --chat-bg: #ffffff;
+      --primary-blue: #0084ff;
+      --bubble-gray: #e4e6eb;
+      --text-dark: #050505;
+      --text-muted: #65676b;
+      --border-color: #e5e5e5;
+      --bubble-font-size: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+
+    /* 1956-os háttérkép */
+    body {
+      background-color: var(--bg-color);
+      background-image: 
+        linear-gradient(rgba(10, 10, 10, 0.55), rgba(10, 10, 10, 0.65)), 
+        url('hatter56.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Kezdőképernyő teljes képernyő gombja */
+    .bg-fs-btn {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .bg-fs-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+
+    .bg-fs-btn.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+    }
+
+    /* Messenger ablak */
+    .messenger-container {
+      width: 95vw;
+      max-width: 1050px;
+      height: 94vh;
+      background: var(--chat-bg);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.65);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97);
+      transition: opacity 0.8s ease, transform 0.8s ease, filter 0.8s ease;
+      z-index: 10;
+    }
+
+    .messenger-container.visible {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1);
+    }
+
+    /* --- JELENET FELVEZETŐ KÁRTYA --- */
+    .scene-intro-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #111;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 50px 40px;
+      z-index: 100;
+      cursor: pointer;
+      transition: opacity 0.6s ease;
+    }
+
+    .scene-intro-overlay::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.4) 100%);
+    }
+
+    .scene-intro-content {
+      position: relative;
+      z-index: 2;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .intro-date {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .intro-location {
+      font-size: 22px;
+      font-weight: 400;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .intro-hint {
+      margin-top: 20px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.15);
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Fejléc */
+    .chat-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .group-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .group-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0084ff, #00c6ff);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0, 132, 255, 0.3);
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .group-details h2 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .group-details p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scene-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #f8f9fa;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .ctrl-btn {
+      background: #f0f2f5;
+      border: none;
+      padding: 8px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.2s;
+    }
+
+    .ctrl-btn:hover {
+      background: #e4e6eb;
+    }
+
+    .font-size-group {
+      display: flex;
+      align-items: center;
+      background: #f0f2f5;
+      border-radius: 8px;
+      padding: 2px;
+      margin-left: 2px;
+    }
+
+    .font-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dark);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .font-btn:hover {
+      background: #e4e6eb;
+    }
+
+    /* Üzenetfolyam */
+    .chat-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+
+    .chat-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-body::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 3px;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      max-width: 84%;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 15px;
+      color: white;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sender-name {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      margin-left: 12px;
+    }
+
+    .message-bubble {
+      padding: 12px 18px;
+      font-size: var(--bubble-font-size);
+      line-height: 1.45;
+      border-radius: 20px;
+      word-break: break-word;
+      transition: font-size 0.2s ease;
+    }
+
+    .message-image {
+      margin-top: 10px;
+      max-width: 280px;
+      max-height: 380px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: block;
+    }
+
+    .message-row.incoming {
+      align-self: flex-start;
+    }
+    .message-row.incoming .message-bubble {
+      background-color: var(--bubble-gray);
+      color: var(--text-dark);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-row.outgoing {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .message-row.outgoing .message-bubble {
+      background-color: var(--primary-blue);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message-row.outgoing .sender-name {
+      text-align: right;
+      margin-right: 12px;
+      margin-left: 0;
+    }
+
+    .system-notification {
+      align-self: center;
+      background-color: #f0f2f5;
+      color: #55575c;
+      font-size: calc(var(--bubble-font-size) + 4px);
+      font-weight: 600;
+      padding: 12px 26px;
+      border-radius: 30px;
+      margin: 14px 0;
+      border: 1px dashed #b0b3b8;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      letter-spacing: 0.3px;
+      transition: font-size 0.2s ease;
+      text-align: center;
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 16px;
+      background-color: var(--bubble-gray);
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      height: 38px;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #8c9099;
+      border-radius: 50%;
+      animation: typingBounce 1.2s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    .audio-message-bubble {
+      background-color: var(--bubble-gray);
+      color: var(--text-dark);
+      border-radius: 24px;
+      border-bottom-left-radius: 4px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 250px;
+      max-width: 320px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .play-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.15s;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .audio-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .audio-waveform {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 20px;
+    }
+
+    .waveform-bar {
+      width: 3px;
+      background: #8c9099;
+      border-radius: 2px;
+      transition: height 0.2s;
+    }
+
+    .audio-playing .waveform-bar {
+      background: var(--primary-blue);
+      animation: wavePulse 0.8s ease-in-out infinite alternate;
+    }
+    .audio-playing .waveform-bar:nth-child(2) { animation-delay: 0.15s; }
+    .audio-playing .waveform-bar:nth-child(3) { animation-delay: 0.3s; }
+    .audio-playing .waveform-bar:nth-child(4) { animation-delay: 0.1s; }
+    .audio-playing .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+    .audio-playing .waveform-bar:nth-child(6) { animation-delay: 0.25s; }
+    .audio-playing .waveform-bar:nth-child(7) { animation-delay: 0.35s; }
+    .audio-playing .waveform-bar:nth-child(8) { animation-delay: 0.05s; }
+
+    @keyframes wavePulse {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.3); }
+    }
+
+    .audio-time {
+      font-size: 11px;
+      color: #65676b;
+      font-weight: 500;
+    }
+
+    .chat-footer {
+      background: #fafafa;
+      border-top: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .progress-text {
+      font-weight: 600;
+      color: var(--primary-blue);
+    }
+
+    /* Videó fedőréteg */
+    .video-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000000;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .video-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .video-wrapper {
+      width: 90vw;
+      max-width: 1100px;
+      height: 75vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+      outline: none;
+    }
+
+    .close-video-btn {
+      position: absolute;
+      top: 25px;
+      right: 35px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s;
+      z-index: 10000;
+    }
+
+    .close-video-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <button class="bg-fs-btn" id="startFsBtn" title="Teljes képernyős vetítés">
+    ⛶ Teljes képernyő
+  </button>
+
+  <div class="messenger-container" id="messengerBox">
+    <div class="scene-intro-overlay" id="introOverlay">
+      <div class="scene-intro-content">
+        <div class="intro-date" id="introDate">1956. október 23.</div>
+        <div class="intro-location" id="introLocation">📍 Tanterem</div>
+        <div class="intro-hint">Kattints vagy nyomj Szóközt a beszélgetéshez! 💬</div>
+      </div>
+    </div>
+
+    <header class="chat-header">
+      <div class="group-info">
+        <div class="group-avatar" id="headerAvatar">M</div>
+        <div class="group-details">
+          <h2 id="headerTitle">Mária</h2>
+          <p id="headerSub">Elérhető</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <select class="scene-select" id="sceneSelector">
+          <option value="0">1. Jelenet: Tanterem (Okt. 23.)</option>
+          <option value="1">2. Jelenet: Este a szobornál</option>
+          <option value="2">3. Jelenet: Parlament előtt (Okt. 25.)</option>
+          <option value="3">4. Jelenet: Corvin köz (Okt. 25-28.)</option>
+          <option value="4">5. Jelenet: Hajnal (Nov. 4.)</option>
+          <option value="5">6. Jelenet: Eltűntek (Nov. 4. után)</option>
+        </select>
+
+        <div class="font-size-group" title="Betűméret kicsinyítés / nagyítás">
+          <button class="font-btn" id="fontDecBtn">A-</button>
+          <button class="font-btn" id="fontIncBtn">A+</button>
+        </div>
+
+        <button class="ctrl-btn" id="fsBtn" title="Teljes képernyő">⛶ Vetítés</button>
+      </div>
+    </header>
+
+    <main class="chat-body" id="chatArea" title="Kattints a következő üzenethez!">
+    </main>
+
+    <footer class="chat-footer">
+      <div class="progress-text" id="progressInfo">0 / 0 üzenet</div>
+    </footer>
+  </div>
+
+  <div class="video-overlay" id="videoOverlay">
+    <button class="close-video-btn" id="closeVideoBtn">✕ Bezárás (vissza a csethez / Szóköz)</button>
+    <div class="video-wrapper">
+      <video id="stageVideo" preload="auto" playsinline>
+        <source id="videoSource" src="1956.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <script>
+    const studentColors = {
+      'Ilus': '#0084ff',
+      'Mária': '#65676b',
+      'Tibor': '#ea580c',
+      'Csaba': '#7c3aed'
+    };
+
+    const scenes = [
+      {
+        id: 1,
+        date: "1956. október 23., délelőtt",
+        location: "Iskolai tanterem",
+        image: "1jel.jpg",
+        messages: [
+          // 1. OLDAL: Privát pad alatti beszélgetés Mária és Ilus között
+          { sender: "Mária", text: "Uncsi az orosz.", role: "incoming" },
+          { sender: "Ilus", text: "Csak el ne felejtsd megcsinálni a házit, mint ma!", role: "outgoing" },
+          { sender: "Mária", text: "Á, lényegtelen. Ma nem tudod, miért hiányoznak ennyien?", role: "incoming" },
+          { sender: "Ilus", text: "Nem. Talán meg kellene kérdezni őket... De egyikük se mondta, hogy betegek lennének.", role: "outgoing" },
+          { sender: "Ilus", text: "Ó! Most írtak a csoportban.", role: "outgoing", noTypingAfter: true },
+
+          // 2. OLDAL: Külön oldalon indul a "Haverok" csoport, Tibor belépésével
+          { sender: "Tibor", text: "Bocs, hogy nem vagyok suliban... ", role: "incoming" },
+          { sender: "Mária", text: "Mi történt? 😲", role: "incoming" },
+          { sender: "Tibor", text: "Apával és öcsémmel szokás szerint elindultunk. Aztán tankokat vettünk észre. Inkább hazajöttünk. Rám parancsolt, nem mehetek ma. ", role: "incoming" },
+          { sender: "Ilus", text: "Nem maradtál le sokról... Tiszta unalmas. 😴", role: "outgoing" },
+          { sender: "Csaba", text: "Mi itt vagyunk a Petőfi-szobornál. ", role: "incoming" },
+          { sender: "Ilus", text: "Miért?? 😮", role: "outgoing" },
+          { sender: "Csaba", text: "Nem hallottátok? Felolvastak 16 pontot a követelésekből! Nemzeti függetlenséget akarnak, szabadságot, valódi demokráciát és egy csomó mindent... Még kaptunk zászlót is, amiből kivághattuk a szovjet címert!", role: "incoming" },
+          { sender: "Tibor", text: "Ma megpróbálok kilógni este. ", role: "incoming" },
+          { sender: "Mária", text: "Mi lesz este?", role: "incoming" },
+          { sender: "Csaba", text: "Nem tudom. Beszélnek mindent össze-vissza... De ti lejöttök? 📢", role: "incoming" }
+        ]
+      },
+      {
+        id: 2,
+        date: "1956. október 23., este",
+        location: "Dózsa György út — A Sztálin-szobor",
+        image: "2jel.png",
+        messages: [
+          { sender: "Tibor", text: "Merre vagytok?", role: "incoming" },
+          { sender: "Mária", text: "Én itt a Sztálin-szobor mellett kb.", image: "sztalin.jpg", role: "incoming" },
+          { sender: "Csaba", text: "Én most indultam el. Apám nem engedett el... Várjatok meg! Kihez tudok csatlakozni?", role: "incoming" },
+          { sender: "Ilus", text: "Nem hiszitek el! A Sztálin-szobor már alig van a helyén... 💥", role: "outgoing" },
+          { type: "video_trigger", videoSrc: "szobor.mp4", autoAdvanceCount: 5 },
+          { sender: "Mária", text: "Látlak a másik oldalon!... De azt azért nem mondanám, még a teherautók se bírják... (izgatottan és türelmetlenül)", role: "incoming" },
+          { sender: "Tibor", text: "Most szakad el a drótkötél!!! ⚡", role: "incoming" },
+          { sender: "Ilus", text: "LEESETT!!!! ", role: "outgoing" },
+          { sender: "Mária", text: "ELDŐLT!!!! 💥", role: "incoming" },
+          { sender: "Csaba", text: "NEEE, pont most értem ide, lemaradtam!", role: "incoming" },
+          { sender: "Tibor", text: "Hahaha, csak a csizmája maradt ott!! Legalább azt meg tudod nézni... 🥾🥾", image: "csizma.jpg", role: "incoming" },
+          { sender: "Mária", text: "Azt hiszem, most már a tér neve lehetne Csizma tér 1. Csak nem lakik itt már senki. 😂😂😂", role: "incoming" },
+          { sender: "Ilus", text: "Nézzétek! Viszik a szobrot!!! Végighúzzák a szobor fejét a Nagykörúton! 👀", role: "outgoing" }
+        ]
+      },
+      {
+        id: 3,
+        date: "1956. október 25., délelőtt",
+        location: "Kossuth tér — A Parlament előtt",
+        image: "3jel.jpg",
+        messages: [
+          { sender: "Tibor", text: "Na mizu a suliban?", role: "incoming" },
+          { sender: "Mária", text: "Azt mondják, többet nem kell oroszt tanulnunk. 🎉", role: "incoming" },
+          { sender: "Csaba", text: "Na neee! 😲", role: "incoming" },
+          { sender: "Tibor", text: "És mit tanulunk majd helyette?", role: "incoming" },
+          { sender: "Ilus", text: "Németet. A felsőbbévesek legalábbis ezt mondták. Mindenki németet fog tanulni orosz helyett. De ti merre vagytok?", role: "outgoing" },
+          { sender: "Tibor", text: "Kint, a Parlamentnél.", role: "incoming" },
+          { sender: "Csaba", text: "Képzeljétek! Az emberek boldogok. Hajnalban szovjet tankok érkeztek, de a szovjetek nem lőnek!", role: "incoming" },
+          { sender: "Tibor", text: "Jaja. Csaba még egy tankra is felmászott... Rátette a lyukas zászlót!", role: "incoming" },
+          { sender: "Tibor", text: "Rátette! Tényleg rátette! ✨", role: "incoming" },
+          { sender: "Ilus", text: "Aztaaaa! 🤩", role: "outgoing" },
+          { sender: "Mária", text: "Ez nagyon menő! 👏", role: "incoming" },
+          { sender: "Ilus", text: "Tulajdonképpen irigy vagyok... És még? 🥺", role: "outgoing" },
+          { sender: "Mária", text: "Meséljetek!", role: "incoming" },
+          { sender: "Ilus", text: "Hahóóóó!", role: "outgoing" },
+          { sender: "Mária", text: "Azt írja a telefon, hogy nem sikerült kézbesíteni...", role: "incoming" },
+          { sender: "Ilus", text: "Vajon miért? 😨", role: "outgoing" }
+        ]
+      },
+      {
+        id: 4,
+        date: "1956. október 25–28.",
+        location: "Corvin köz — Az ellenállás",
+        image: "4jel.jpg",
+        messages: [
+          { sender: "Mária", text: "Fiúk! Válaszoljatok!!!!", role: "incoming" },
+          { sender: "Tibor", text: "Megvagyunk-megvagyunk! 👍", role: "incoming" },
+          { sender: "Ilus", text: "Hallottuk, hogy az ÁVH több száz emberre tüzet nyitott!", role: "outgoing" },
+          { sender: "Csaba", text: "Igen... 😔", role: "incoming" },
+          { sender: "Mária", text: "Ugye nektek semmi bajotok?", role: "incoming" },
+          { sender: "Csaba", text: "Legfeljebb két karcolás. De úgy döntöttünk, megyünk a Corvin közre. Több fiatal tervezi az ellenállást. Többek között Pongrátz Gergely és Maléter Pál, és hívtak minket is.", role: "incoming" },
+          { sender: "Mária", text: "Micsodaaaa? 😱", role: "incoming" },
+          { sender: "Tibor", text: "Szükség van ránk! Éppen ezért már itt vagyunk a közben. Tele van az utca hozzánk hasonló srácokkal. Fegyvert osztanak és benzint töltenek az üvegekbe.", role: "incoming" },
+          { sender: "Ilus", text: "Megőrültetek? Alig vagytok 15 évesek!", role: "outgoing" },
+          { sender: "Csaba", text: "A Kossuth téren ártatlanokra lőttek. Nem ülhetek a szobámban tétlenül, ha már iskolába sem enged el apám! ✊", role: "incoming" },
+          { sender: "Tibor", text: "Ti addig vigyázzatok magatokra. Nem tudjuk, mikor lesz legközelebb térerőnk.", role: "incoming", noTypingAfter: true },
+          { sender: "Tibor", text: "Megvagyunk! Nem engedtük őket tovább! 💪💪", role: "incoming" },
+          { sender: "Ilus", text: "Sikerült...? 😮", role: "outgoing" },
+          { sender: "Csaba", text: "Mi az hogy! Lángolt a harckocsijuk! Nem engedtük őket tovább a Corvin-közbe! 🔥", role: "incoming" },
+          { sender: "Tibor", text: "Úgy tűnik, visszavonulót fújnak! ✌️", role: "incoming" },
+          { sender: "Csaba", text: "Azt mondják, hogy nyerésre állunk! Az is lehet, hogy november elsején kimondják a tűzszünetet.", role: "incoming" },
+          { sender: "Ilus", text: "Ki? Ki fogja kimondani?", role: "outgoing" },
+          { sender: "Tibor", text: "Nagy Imre!", role: "incoming" },
+          { type: "video_trigger", videoSrc: "1956.mp4" }
+        ]
+      },
+      {
+        id: 5,
+        date: "1956. november 4., hajnal",
+        location: "Budapest utcái — Rádióadás",
+        image: "5jel.jpg",
+        messages: [
+          { sender: "Tibor", text: "Nem úgy volt, hogy tűzszünet van?", role: "incoming" },
+          { sender: "Csaba", text: "Azt hittem, csak a fülem cseng.", role: "incoming" },
+          { sender: "Ilus", text: "Nem... én is hallom! Nagyon közeliek...", role: "outgoing" },
+          { sender: "Mária", text: "Mi történik?... 😰", role: "incoming" },
+          { sender: "Tibor", text: "Már alig van hálózat... Van valamelyikőtöknek rádiója? 📡", role: "incoming" },
+          { sender: "Mária", text: "Hallgatom. Elküldöm hangüzenetben.", role: "incoming" },
+          { sender: "Mária", type: "voice_message", role: "incoming" },
+          { sender: "Csaba", text: "Ugye ez nem igaz? Nem lehet igaz... 😢", role: "incoming" },
+          { sender: "Ilus", text: "Most mennem kell. Apa azt mondta, aludjak.", role: "outgoing" },
+          { sender: "Tibor", text: "Én még nem aludhatok... Anyuék azt mondták, pakolnunk kell. 🧳", role: "incoming" }
+        ]
+      },
+      {
+        id: 6,
+        date: "1956. november 4-e után",
+        location: "Az üres tanterem",
+        image: "1jel.jpg",
+        messages: [
+          { type: "system", text: "Tibor nem elérhető" },
+          { type: "system", text: "Csaba kilépett a csoportból" },
+          { type: "system", text: "Mária törölt felhasználó" }
+        ]
+      }
+    ];
+
+    let currentSceneIndex = 0;
+    let currentMessageIndex = 0;
+    let isIntroVisible = true;
+    let isVideoPlaying = false;
+    let currentVideoTrigger = null;
+    let isStarted = false;
+
+    // --- MESSENGER HANG ---
+    const msgNotificationAudio = new Audio('messenger.mp3');
+    msgNotificationAudio.volume = 0.12;
+
+    function playMessengerNotification() {
+      if (currentSceneIndex === 0) {
+        msgNotificationAudio.currentTime = 0;
+        msgNotificationAudio.play().catch(e => console.log('Messenger hang blokkolva:', e));
+      }
+    }
+
+    // --- TANK HANG EFFEKT ---
+    const tankAudio = new Audio('tank.mp3');
+    let tankFadeInterval = null;
+
+    function playTankWithFadeOut() {
+      if (tankFadeInterval) clearInterval(tankFadeInterval);
+      tankAudio.loop = true;
+      tankAudio.volume = 0.55;
+      tankAudio.currentTime = 0;
+      
+      const playPromise = tankAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn('Tankhang figyelmeztetés:', err);
+        });
+      }
+
+      setTimeout(() => {
+        if (currentSceneIndex !== 4) return;
+        tankFadeInterval = setInterval(() => {
+          if (tankAudio.volume > 0.12) {
+            tankAudio.volume = Math.max(0.10, tankAudio.volume - 0.03);
+          } else {
+            tankAudio.volume = 0.10;
+            clearInterval(tankFadeInterval);
+          }
+        }, 120);
+      }, 3000);
+    }
+
+    function fadeOutTankSlowly() {
+      if (tankFadeInterval) clearInterval(tankFadeInterval);
+      tankAudio.loop = false;
+      tankFadeInterval = setInterval(() => {
+        if (tankAudio.volume > 0.01) {
+          tankAudio.volume = Math.max(0, tankAudio.volume - 0.008);
+        } else {
+          tankAudio.volume = 0;
+          tankAudio.pause();
+          tankAudio.currentTime = 0;
+          clearInterval(tankFadeInterval);
+        }
+      }, 250);
+    }
+
+    function stopTankSoundImmediately() {
+      if (tankFadeInterval) clearInterval(tankFadeInterval);
+      tankAudio.pause();
+      tankAudio.currentTime = 0;
+      tankAudio.volume = 0.55;
+    }
+
+    // --- HANGÜZENET (WEB AUDIO API ERŐSÍTÉSSEL) ---
+    const voiceAudio = new Audio('hanguzenet.mp3');
+    let audioCtx = null;
+    let gainNode = null;
+    let isVoicePlaying = false;
+
+    function initWebAudioBoost() {
+      if (!audioCtx) {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+          const track = audioCtx.createMediaElementSource(voiceAudio);
+          gainNode = audioCtx.createGain();
+          gainNode.gain.value = 2.0;
+          track.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+        } catch (err) {
+          console.warn('Web Audio erősítés hiba:', err);
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleVoiceMessage() {
+      initWebAudioBoost();
+      const playBtn = document.getElementById('voicePlayBtn');
+      const container = document.getElementById('voiceBubbleContainer');
+
+      if (isVoicePlaying) {
+        voiceAudio.pause();
+        isVoicePlaying = false;
+        if (playBtn) playBtn.textContent = '▶';
+        if (container) container.classList.remove('audio-playing');
+      } else {
+        voiceAudio.play().catch(e => console.log('Autoplay block:', e));
+        isVoicePlaying = true;
+        if (playBtn) playBtn.textContent = '⏸';
+        if (container) container.classList.add('audio-playing');
+      }
+    }
+
+    voiceAudio.addEventListener('timeupdate', () => {
+      const timeDisplay = document.getElementById('voiceTimeDisplay');
+      if (timeDisplay) {
+        const current = formatTime(voiceAudio.currentTime);
+        const total = isNaN(voiceAudio.duration) ? '0:00' : formatTime(voiceAudio.duration);
+        timeDisplay.textContent = `${current} / ${total}`;
+      }
+    });
+
+    voiceAudio.addEventListener('ended', () => {
+      isVoicePlaying = false;
+      const playBtn = document.getElementById('voicePlayBtn');
+      const container = document.getElementById('voiceBubbleContainer');
+      if (playBtn) playBtn.textContent = '▶';
+      if (container) container.classList.remove('audio-playing');
+    });
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // --- BETŰMÉRET ÁLLÍTÁS ---
+    let currentFontSize = 18;
+    const fontIncBtn = document.getElementById('fontIncBtn');
+    const fontDecBtn = document.getElementById('fontDecBtn');
+
+    function changeFontSize(delta) {
+      currentFontSize = Math.min(30, Math.max(14, currentFontSize + delta));
+      document.documentElement.style.setProperty('--bubble-font-size', `${currentFontSize}px`);
+    }
+
+    fontIncBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      changeFontSize(2);
+    });
+
+    fontDecBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      changeFontSize(-2);
+    });
+
+    // --- FELVEZETŐ KÁRTYA & INDÍTÁS ---
+    const introOverlay = document.getElementById('introOverlay');
+    const introDate = document.getElementById('introDate');
+    const introLocation = document.getElementById('introLocation');
+    const messengerBox = document.getElementById('messengerBox');
+    const startFsBtn = document.getElementById('startFsBtn');
+
+    function startPresentation() {
+      if (isStarted) return;
+      isStarted = true;
+      startFsBtn.classList.add('hidden');
+      messengerBox.classList.add('visible');
+      updateIntroCard();
+    }
+
+    function updateIntroCard() {
+      const scene = scenes[currentSceneIndex];
+      introDate.textContent = scene.date;
+      introLocation.textContent = `📍 ${scene.location}`;
+      introOverlay.style.backgroundImage = `url('${scene.image}')`;
+      introOverlay.style.display = 'flex';
+      introOverlay.style.opacity = '1';
+      introOverlay.style.pointerEvents = 'all';
+      isIntroVisible = true;
+
+      if (currentSceneIndex === 4) {
+        playTankWithFadeOut();
+      } else if (currentSceneIndex === 5) {
+        fadeOutTankSlowly();
+      } else {
+        stopTankSoundImmediately();
+      }
+    }
+
+    function hideIntroCard() {
+      if (!isIntroVisible) return;
+      isIntroVisible = false;
+      introOverlay.style.opacity = '0';
+      introOverlay.style.pointerEvents = 'none';
+      setTimeout(() => {
+        introOverlay.style.display = 'none';
+      }, 600);
+      
+      if (currentSceneIndex === 4 && tankAudio.paused) {
+        playTankWithFadeOut();
+      }
+    }
+
+    introOverlay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideIntroCard();
+    });
+
+    // --- VIDEÓ KEZELŐ (MP4) ---
+    const stageVideo = document.getElementById('stageVideo');
+    const videoSource = document.getElementById('videoSource');
+    const videoOverlay = document.getElementById('videoOverlay');
+
+    function openVideoOverlay(triggerMsg) {
+      isVideoPlaying = true;
+      currentVideoTrigger = triggerMsg;
+
+      const videoFile = triggerMsg.videoSrc || '1956.mp4';
+      videoSource.src = videoFile;
+      videoSource.type = 'video/mp4';
+      stageVideo.load();
+
+      videoOverlay.classList.add('active');
+      messengerBox.style.opacity = '0';
+      messengerBox.style.filter = 'blur(10px)';
+
+      stageVideo.currentTime = 0;
+      stageVideo.play().catch(err => {
+        console.warn('Videó indítása:', err);
+      });
+    }
+
+    function closeVideoOverlay() {
+      if (!isVideoPlaying) return;
+      isVideoPlaying = false;
+      stageVideo.pause();
+      videoOverlay.classList.remove('active');
+      messengerBox.style.opacity = '1';
+      messengerBox.style.filter = 'none';
+
+      const scene = scenes[currentSceneIndex];
+      const autoCount = currentVideoTrigger?.autoAdvanceCount || 0;
+
+      currentMessageIndex += 1 + autoCount;
+      if (currentMessageIndex > scene.messages.length) {
+        currentMessageIndex = scene.messages.length;
+      }
+      currentVideoTrigger = null;
+      renderMessages();
+    }
+
+    stageVideo.addEventListener('ended', () => {
+      stageVideo.pause();
+    });
+
+    document.getElementById('closeVideoBtn').addEventListener('click', closeVideoOverlay);
+
+    // --- MEGJELENÍTÉS (JAVÍTOTT OLDALVÁLTÁS AZ 1. JELENETBEN) ---
+    const chatArea = document.getElementById('chatArea');
+    const headerTitle = document.getElementById('headerTitle');
+    const headerAvatar = document.getElementById('headerAvatar');
+    const headerSub = document.getElementById('headerSub');
+    const sceneSelector = document.getElementById('sceneSelector');
+    const progressInfo = document.getElementById('progressInfo');
+
+    function renderMessages() {
+      chatArea.innerHTML = '';
+      const scene = scenes[currentSceneIndex];
+
+      let startIndex = 0;
+      let isGroupSection = false;
+
+      if (currentSceneIndex === 0) {
+        // JAVÍTÁS: Csak az 5. üzenet UTÁN (azaz a 6. üzenettől, index > 5) váltunk a Haverok csoportra!
+        if (currentMessageIndex > 5) {
+          startIndex = 5;
+          isGroupSection = true;
+        } else {
+          startIndex = 0;
+          isGroupSection = false;
+        }
+
+        if (!isGroupSection) {
+          headerTitle.textContent = "Mária";
+          headerAvatar.textContent = "M";
+          headerAvatar.style.background = studentColors['Mária'];
+          headerSub.textContent = "Elérhető";
+        } else {
+          headerTitle.textContent = "Haverok";
+          headerAvatar.textContent = "💬";
+          headerAvatar.style.background = "linear-gradient(135deg, #0084ff, #00c6ff)";
+          headerSub.textContent = `${scene.date} — ${scene.location}`;
+        }
+      } else {
+        headerTitle.textContent = "Haverok";
+        headerAvatar.textContent = "💬";
+        headerAvatar.style.background = "linear-gradient(135deg, #0084ff, #00c6ff)";
+        headerSub.textContent = `${scene.date} — ${scene.location}`;
+      }
+
+      for (let i = startIndex; i < currentMessageIndex; i++) {
+        const msg = scene.messages[i];
+        if (msg.type === 'system') {
+          const div = document.createElement('div');
+          div.className = 'system-notification';
+          div.textContent = msg.text;
+          chatArea.appendChild(div);
+        } else if (msg.type === 'video_trigger') {
+          continue;
+        } else if (msg.type === 'voice_message') {
+          const row = document.createElement('div');
+          row.className = `message-row ${msg.role}`;
+
+          const avatar = document.createElement('div');
+          avatar.className = 'avatar';
+          avatar.style.backgroundColor = studentColors[msg.sender] || '#65676b';
+          avatar.textContent = msg.sender.charAt(0);
+
+          const content = document.createElement('div');
+          content.className = 'message-content';
+
+          const name = document.createElement('div');
+          name.className = 'sender-name';
+          name.textContent = msg.sender;
+
+          const bubble = document.createElement('div');
+          bubble.className = `audio-message-bubble ${isVoicePlaying ? 'audio-playing' : ''}`;
+          bubble.id = 'voiceBubbleContainer';
+
+          const playBtn = document.createElement('button');
+          playBtn.className = 'play-btn';
+          playBtn.id = 'voicePlayBtn';
+          playBtn.textContent = isVoicePlaying ? '⏸' : '▶';
+          playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleVoiceMessage();
+          });
+
+          const info = document.createElement('div');
+          info.className = 'audio-info';
+
+          const wave = document.createElement('div');
+          wave.className = 'audio-waveform';
+          const heights = [6, 12, 18, 14, 8, 16, 20, 10, 14, 8, 12];
+          heights.forEach(h => {
+            const bar = document.createElement('div');
+            bar.className = 'waveform-bar';
+            bar.style.height = `${h}px`;
+            wave.appendChild(bar);
+          });
+
+          const time = document.createElement('div');
+          time.className = 'audio-time';
+          time.id = 'voiceTimeDisplay';
+          time.textContent = isNaN(voiceAudio.duration) ? '0:00' : `0:00 / ${formatTime(voiceAudio.duration)}`;
+
+          info.appendChild(wave);
+          info.appendChild(time);
+          bubble.appendChild(playBtn);
+          bubble.appendChild(info);
+
+          bubble.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleVoiceMessage();
+          });
+
+          content.appendChild(name);
+          content.appendChild(bubble);
+
+          row.appendChild(avatar);
+          row.appendChild(content);
+          chatArea.appendChild(row);
+        } else {
+          const row = document.createElement('div');
+          row.className = `message-row ${msg.role}`;
+
+          const avatar = document.createElement('div');
+          avatar.className = 'avatar';
+          avatar.style.backgroundColor = studentColors[msg.sender] || '#65676b';
+          avatar.textContent = msg.sender.charAt(0);
+
+          const content = document.createElement('div');
+          content.className = 'message-content';
+
+          const name = document.createElement('div');
+          name.className = 'sender-name';
+          name.textContent = msg.sender;
+
+          const bubble = document.createElement('div');
+          bubble.className = 'message-bubble';
+          bubble.textContent = msg.text;
+
+          if (msg.image) {
+            const img = document.createElement('img');
+            img.src = msg.image;
+            img.className = 'message-image';
+            img.alt = 'Csatolt fotó';
+            bubble.appendChild(img);
+          }
+
+          content.appendChild(name);
+          content.appendChild(bubble);
+
+          row.appendChild(avatar);
+          row.appendChild(content);
+          chatArea.appendChild(row);
+        }
+      }
+
+      // Gépelésjelző logika
+      if (currentMessageIndex < scene.messages.length) {
+        const lastShownMsg = currentMessageIndex > 0 ? scene.messages[currentMessageIndex - 1] : null;
+        const nextMsg = scene.messages[currentMessageIndex];
+
+        const skipTyping = lastShownMsg && lastShownMsg.noTypingAfter;
+
+        if (!skipTyping && nextMsg.role === 'incoming' && nextMsg.type !== 'voice_message' && nextMsg.type !== 'video_trigger') {
+          const typingRow = document.createElement('div');
+          typingRow.className = 'message-row incoming';
+
+          const avatar = document.createElement('div');
+          avatar.className = 'avatar';
+          avatar.style.backgroundColor = studentColors[nextMsg.sender] || '#65676b';
+          avatar.textContent = nextMsg.sender ? nextMsg.sender.charAt(0) : '💬';
+
+          const content = document.createElement('div');
+          content.className = 'message-content';
+
+          const name = document.createElement('div');
+          name.className = 'sender-name';
+          name.textContent = nextMsg.sender || '';
+
+          const bubble = document.createElement('div');
+          bubble.className = 'typing-indicator';
+          bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+          content.appendChild(name);
+          content.appendChild(bubble);
+          typingRow.appendChild(avatar);
+          typingRow.appendChild(content);
+
+          chatArea.appendChild(typingRow);
+        }
+      }
+
+      const actualCount = scene.messages.filter(m => m.type !== 'video_trigger').length;
+      const currentActual = scene.messages.slice(0, currentMessageIndex).filter(m => m.type !== 'video_trigger').length;
+      progressInfo.textContent = `${currentActual} / ${actualCount} üzenet`;
+
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function nextMessage() {
+      if (!isStarted) {
+        startPresentation();
+        return;
+      }
+
+      if (isVideoPlaying) return;
+
+      if (isIntroVisible) {
+        hideIntroCard();
+        return;
+      }
+
+      const scene = scenes[currentSceneIndex];
+      if (currentMessageIndex < scene.messages.length) {
+        const nextMsg = scene.messages[currentMessageIndex];
+
+        if (nextMsg.type === 'video_trigger') {
+          openVideoOverlay(nextMsg);
+          return;
+        }
+
+        currentMessageIndex++;
+        renderMessages();
+
+        if (currentSceneIndex === 0) {
+          playMessengerNotification();
+        }
+
+        const currentMsg = scene.messages[currentMessageIndex - 1];
+        if (currentMsg.type === 'voice_message') {
+          toggleVoiceMessage();
+        }
+      }
+    }
+
+    function prevMessage() {
+      if (!isStarted) return;
+      if (isVideoPlaying) {
+        closeVideoOverlay();
+        return;
+      }
+      if (currentMessageIndex > 0) {
+        if (isVoicePlaying) voiceAudio.pause();
+        currentMessageIndex--;
+        if (scenes[currentSceneIndex].messages[currentMessageIndex]?.type === 'video_trigger') {
+          currentMessageIndex--;
+        }
+        renderMessages();
+      } else if (!isIntroVisible) {
+        updateIntroCard();
+      }
+    }
+
+    function switchScene(index) {
+      if (!isStarted) startPresentation();
+      if (isVideoPlaying) closeVideoOverlay();
+      if (isVoicePlaying) voiceAudio.pause();
+
+      currentSceneIndex = parseInt(index);
+      currentMessageIndex = 0;
+      sceneSelector.value = currentSceneIndex;
+      updateIntroCard();
+      renderMessages();
+    }
+
+    window.addEventListener('click', (e) => {
+      if (e.target.closest('#startFsBtn') || e.target.closest('.font-size-group')) return;
+      if (!isStarted) {
+        startPresentation();
+      }
+    });
+
+    chatArea.addEventListener('click', (e) => {
+      e.stopPropagation();
+      nextMessage();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (!isStarted) {
+        e.preventDefault();
+        startPresentation();
+        return;
+      }
+
+      if (isVideoPlaying) {
+        if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          closeVideoOverlay();
+        }
+        return;
+      }
+
+      if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault();
+        nextMessage();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevMessage();
+      } else if (e.key >= '1' && e.key <= '6') {
+        switchScene(parseInt(e.key) - 1);
+      } else if (e.key === '+' || e.key === '=') {
+        changeFontSize(2);
+      } else if (e.key === '-' || e.key === '_') {
+        changeFontSize(-2);
+      }
+    });
+
+    sceneSelector.addEventListener('change', (e) => {
+      switchScene(e.target.value);
+    });
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.getElementById('fsBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFullScreen();
+    });
+
+    startFsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFullScreen();
+    });
+
+    renderMessages();
+  </script>
+</body>
+</html>
