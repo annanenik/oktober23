@@ -337,6 +337,43 @@
       transition: font-size 0.2s ease;
     }
 
+    /* Messenger felkiáltójeles hiba felirat */
+    .delivery-error-text {
+      font-size: calc(var(--bubble-font-size) - 5px);
+      color: #e41e3f;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;
+      letter-spacing: 0.2px;
+    }
+
+    .error-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background-color: #e41e3f;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      font-style: normal;
+      line-height: 1;
+    }
+
+    .message-row.outgoing .delivery-error-text {
+      justify-content: flex-end;
+      margin-right: 12px;
+    }
+
+    .message-row.incoming .delivery-error-text {
+      justify-content: flex-start;
+      margin-left: 12px;
+    }
+
     .message-image {
       margin-top: 10px;
       max-width: 280px;
@@ -510,7 +547,7 @@
       color: var(--primary-blue);
     }
 
-    /* Videó fedőréteg */
+    /* --- TELJES KÉPERNYŐS VIDEÓ FEDŐRÉTEG (NAGYÍTOTT MÉRET) --- */
     .video-overlay {
       position: fixed;
       top: 0;
@@ -533,14 +570,15 @@
       pointer-events: all;
     }
 
+    /* Megnövelt videó keretméret a jobb láthatóságért */
     .video-wrapper {
-      width: 90vw;
-      max-width: 1100px;
-      height: 75vh;
+      width: 98vw;
+      max-width: 1600px;
+      height: 92vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.95);
       border-radius: 12px;
       overflow: hidden;
       background: #000;
@@ -556,8 +594,8 @@
 
     .close-video-btn {
       position: absolute;
-      top: 25px;
-      right: 35px;
+      top: 20px;
+      right: 25px;
       background: rgba(255, 255, 255, 0.15);
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -651,14 +689,12 @@
         location: "Iskolai tanterem",
         image: "1jel.jpg",
         messages: [
-          // 1. OLDAL: Privát pad alatti beszélgetés Mária és Ilus között
           { sender: "Mária", text: "Uncsi az orosz.", role: "incoming" },
           { sender: "Ilus", text: "Csak el ne felejtsd megcsinálni a házit, mint ma!", role: "outgoing" },
           { sender: "Mária", text: "Á, lényegtelen. Ma nem tudod, miért hiányoznak ennyien?", role: "incoming" },
           { sender: "Ilus", text: "Nem. Talán meg kellene kérdezni őket... De egyikük se mondta, hogy betegek lennének.", role: "outgoing" },
           { sender: "Ilus", text: "Ó! Most írtak a csoportban.", role: "outgoing", noTypingAfter: true },
 
-          // 2. OLDAL: Külön oldalon indul a "Haverok" csoport, Tibor belépésével
           { sender: "Tibor", text: "Bocs, hogy nem vagyok suliban... ", role: "incoming" },
           { sender: "Mária", text: "Mi történt? 😲", role: "incoming" },
           { sender: "Tibor", text: "Apával és öcsémmel szokás szerint elindultunk. Aztán tankokat vettünk észre. Inkább hazajöttünk. Rám parancsolt, nem mehetek ma. ", role: "incoming" },
@@ -709,8 +745,10 @@
           { sender: "Tibor", text: "Rátette! Tényleg rátette! ✨", role: "incoming" },
           { sender: "Ilus", text: "Aztaaaa! 🤩", role: "outgoing" },
           { sender: "Mária", text: "Ez nagyon menő! 👏", role: "incoming" },
-          { sender: "Ilus", text: "Tulajdonképpen irigy vagyok... És még? 🥺", role: "outgoing" },
-          { sender: "Mária", text: "Meséljetek!", role: "incoming" },
+          
+          { sender: "Ilus", text: "Tulajdonképpen irigy vagyok... És még? 🥺", role: "outgoing", deliveryFailed: true },
+          { sender: "Mária", text: "Meséljetek!", role: "incoming", deliveryFailed: true },
+          
           { sender: "Ilus", text: "Hahóóóó!", role: "outgoing" },
           { sender: "Mária", text: "Azt írja a telefon, hogy nem sikerült kézbesíteni...", role: "incoming" },
           { sender: "Ilus", text: "Vajon miért? 😨", role: "outgoing" }
@@ -983,7 +1021,7 @@
       hideIntroCard();
     });
 
-    // --- VIDEÓ KEZELŐ (MP4) ---
+    // --- VIDEÓ KEZELŐ ---
     const stageVideo = document.getElementById('stageVideo');
     const videoSource = document.getElementById('videoSource');
     const videoOverlay = document.getElementById('videoOverlay');
@@ -996,6 +1034,7 @@
       videoSource.src = videoFile;
       videoSource.type = 'video/mp4';
       stageVideo.load();
+      stageVideo.volume = 1.0;
 
       videoOverlay.classList.add('active');
       messengerBox.style.opacity = '0';
@@ -1010,7 +1049,9 @@
     function closeVideoOverlay() {
       if (!isVideoPlaying) return;
       isVideoPlaying = false;
+
       stageVideo.pause();
+
       videoOverlay.classList.remove('active');
       messengerBox.style.opacity = '1';
       messengerBox.style.filter = 'none';
@@ -1032,7 +1073,7 @@
 
     document.getElementById('closeVideoBtn').addEventListener('click', closeVideoOverlay);
 
-    // --- MEGJELENÍTÉS (JAVÍTOTT OLDALVÁLTÁS AZ 1. JELENETBEN) ---
+    // --- MEGJELENÍTÉS ---
     const chatArea = document.getElementById('chatArea');
     const headerTitle = document.getElementById('headerTitle');
     const headerAvatar = document.getElementById('headerAvatar');
@@ -1048,7 +1089,6 @@
       let isGroupSection = false;
 
       if (currentSceneIndex === 0) {
-        // JAVÍTÁS: Csak az 5. üzenet UTÁN (azaz a 6. üzenettől, index > 5) váltunk a Haverok csoportra!
         if (currentMessageIndex > 5) {
           startIndex = 5;
           isGroupSection = true;
@@ -1178,6 +1218,18 @@
           content.appendChild(name);
           content.appendChild(bubble);
 
+          // MESSENGER FELKIÁLTÓJELES HIBA JELZÉSE
+          if (msg.deliveryFailed) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'delivery-error-text';
+            if (msg.role === 'outgoing') {
+              errorDiv.innerHTML = `Nem sikerült kézbesíteni <span class="error-circle">!</span>`;
+            } else {
+              errorDiv.innerHTML = `<span class="error-circle">!</span> Nem sikerült kézbesíteni`;
+            }
+            content.appendChild(errorDiv);
+          }
+
           row.appendChild(avatar);
           row.appendChild(content);
           chatArea.appendChild(row);
@@ -1285,6 +1337,7 @@
       if (!isStarted) startPresentation();
       if (isVideoPlaying) closeVideoOverlay();
       if (isVoicePlaying) voiceAudio.pause();
+      stageVideo.pause();
 
       currentSceneIndex = parseInt(index);
       currentMessageIndex = 0;
